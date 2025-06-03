@@ -1,29 +1,30 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+// test/widget_test.dart
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:p3l/main.dart';
+// Penting: Pastikan path impor ini benar!
+// 'p3l' harus sesuai dengan nama paket Anda di pubspec.yaml (baris 'name: p3l').
+// File 'main.dart' harus berada di dalam direktori 'lib' dari paket tersebut.
+import 'package:MOBILEP3L/main.dart'; // Jika nama paket Anda berbeda, ganti 'p3l'
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // Bangun aplikasi kita dan picu sebuah frame.
+    // Pastikan kelas 'MyApp' didefinisikan di 'package:p3l/main.dart'
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
+    // Verifikasi bahwa counter kita dimulai dari 0.
     expect(find.text('0'), findsOneWidget);
     expect(find.text('1'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
+    // Ketuk ikon '+' dan picu sebuah frame.
+    // Pastikan FloatingActionButton Anda menggunakan Icons.add
     await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester
+        .pump(); // Panggil pump() setelah interaksi untuk membangun ulang widget
 
-    // Verify that our counter has incremented.
+    // Verifikasi bahwa counter kita telah bertambah.
     expect(find.text('0'), findsNothing);
     expect(find.text('1'), findsOneWidget);
   });
