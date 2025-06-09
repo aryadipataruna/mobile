@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:p3l/entity/Kurir.dart';
 
 // Impor model yang mungkin dikembalikan setelah login
 import '../entity/Pegawai.dart';
@@ -55,6 +56,14 @@ class LoginClient {
           case 'organisasi':
             userModel = Organisasi.fromJson(userData);
             break;
+          case 'kurir':
+            userModel = Kurir.fromJson(userData);
+            break;
+
+          // case 'hunter':
+          //   userModel = Hunter.fromJson(userData);
+          //   break;
+
           default:
             // Handle unknown role or no specific model
             userModel = userData; // Return raw data if no specific model
@@ -116,6 +125,10 @@ class LoginClient {
           case 'organisasi':
             userModel = Organisasi.fromJson(userData);
             break;
+          case 'kurir':
+            userModel = Kurir.fromJson(userData);
+            break;
+
           default:
             userModel = userData;
             break;
@@ -127,12 +140,14 @@ class LoginClient {
           'message': responseData['message'],
         };
       } else {
-        throw Exception('Gagal mendapatkan data user: ${responseData['message']}');
+        throw Exception(
+            'Gagal mendapatkan data user: ${responseData['message']}');
       }
     } else if (response.statusCode == 401) {
       throw Exception('Tidak terotentikasi: Token tidak valid atau tidak ada.');
     } else {
-      throw Exception('Gagal mendapatkan data user: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal mendapatkan data user: ${response.statusCode} - ${response.body}');
     }
   }
 
@@ -157,7 +172,8 @@ class LoginClient {
     } else if (response.statusCode == 401) {
       throw Exception('Tidak terotentikasi: Token tidak valid atau tidak ada.');
     } else {
-      throw Exception('Gagal logout: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal logout: ${response.statusCode} - ${response.body}');
     }
   }
 }
