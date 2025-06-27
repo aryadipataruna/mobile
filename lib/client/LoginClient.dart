@@ -2,7 +2,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:p3l/entity/Kurir.dart';
+// import 'package:p3l/entity/Kurir.dart';
 
 // Impor model yang mungkin dikembalikan setelah login
 import '../entity/Pegawai.dart';
@@ -56,9 +56,9 @@ class LoginClient {
           case 'organisasi':
             userModel = Organisasi.fromJson(userData);
             break;
-          case 'kurir':
-            userModel = Kurir.fromJson(userData);
-            break;
+          // case 'kurir':
+          //   userModel = Kurir.fromJson(userData);
+          //   break;
 
           // case 'hunter':
           //   userModel = Hunter.fromJson(userData);
@@ -125,9 +125,9 @@ class LoginClient {
           case 'organisasi':
             userModel = Organisasi.fromJson(userData);
             break;
-          case 'kurir':
-            userModel = Kurir.fromJson(userData);
-            break;
+          // case 'kurir':
+          //   userModel = Kurir.fromJson(userData);
+          //   break;
 
           default:
             userModel = userData;

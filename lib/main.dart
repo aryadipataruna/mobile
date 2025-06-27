@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         routes: {
           // Pastikan nama rute ini sama persis dengan yang di Navigator.pushNamed
           '/ProfilePage': (context) =>
-              const ProfilePage(userId: 'PEM001'), // Gunakan 'P' kapital
+              const ProfilePage(), // Gunakan 'P' kapital
           // ... rute lainnya
         },
         home: AuthPage());

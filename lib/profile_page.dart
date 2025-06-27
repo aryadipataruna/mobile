@@ -1,12 +1,19 @@
+// lib/profilePage.dart (atau lokasi file ProfilePage Anda)
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Untuk format angka
-import 'package:p3l/entity/Pembeli.dart'; // Import model Pembeli Anda
-import 'package:p3l/client/PembeliClient.dart'; // Import client Pembeli Anda
+import 'package:intl/intl.dart';
+import 'package:p3l/entity/Pembeli.dart';
+import 'package:p3l/client/PembeliClient.dart';
+import 'package:p3l/auth_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfilePage extends StatefulWidget {
-  final String userId;
+  // userID akan diambil dari SharedPreferences, jadi kita bisa membuatnya nullable atau hapus dari constructor jika tidak diperlukan secara langsung dari rute
+  // Namun, jika Anda mengirimnya dari rute (misal dari halaman beranda), biarkan saja.
+  final String?
+      userId; // Ubah menjadi nullable jika Anda tidak selalu mengirimnya dari rute
 
-  const ProfilePage({super.key, required this.userId});
+  const ProfilePage({super.key, this.userId}); // Ubah constructor
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -16,7 +23,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Pembeli? _pembeli;
   bool _isLoading = true;
   String? _errorMessage;
-  final PembeliClient _pembeliClient = PembeliClient(); // Inisialisasi client
+  final PembeliClient _pembeliClient = PembeliClient();
 
   @override
   void initState() {
@@ -31,15 +38,34 @@ class _ProfilePageState extends State<ProfilePage> {
     });
 
     try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? authToken = prefs.getString('authToken');
+      // Gunakan userId dari SharedPreferences jika widget.userId null
+      final String? currentUserId =
+          widget.userId ?? prefs.getString('currentUserId');
+
+      if (authToken == null || authToken.isEmpty) {
+        throw Exception(
+            'Token autentikasi tidak ditemukan. Silakan login kembali.');
+      }
+      if (currentUserId == null || currentUserId.isEmpty) {
+        throw Exception('ID pengguna tidak ditemukan. Silakan login kembali.');
+      }
+
       // Menggunakan PembeliClient untuk mengambil data pembeli berdasarkan ID
-      final Pembeli fetchedPembeli = await _pembeliClient.fetchPembeliById(widget.userId);
+      // Teruskan token autentikasi
+      final Pembeli fetchedPembeli = await _pembeliClient.fetchPembeliById(
+        currentUserId, // Menggunakan ID pengguna yang ditemukan
+        authToken: authToken, // Meneruskan token autentikasi
+      );
+
       setState(() {
         _pembeli = fetchedPembeli;
         _isLoading = false;
       });
     } on Exception catch (e) {
       setState(() {
-        _errorMessage = e.toString().replaceFirst('Exception: ', ''); 
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
       });
       print('Error fetching profile data: $e');
@@ -48,7 +74,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Define the color scheme based on your existing dark theme
     const Color primaryDark = Color(0xFF0A0A0A);
     const Color secondaryDark = Color(0xFF1A1A1A);
     const Color cardDark = Color(0xFF2A2A2A);
@@ -93,16 +118,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           _errorMessage!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: textLight, fontSize: 18),
+                          style:
+                              const TextStyle(color: textLight, fontSize: 18),
                         ),
                         const SizedBox(height: 30),
                         ElevatedButton.icon(
                           onPressed: _fetchProfileData,
                           icon: const Icon(Icons.refresh, color: Colors.white),
-                          label: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
+                          label: const Text('Coba Lagi',
+                              style: TextStyle(color: Colors.white)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: accentBlue,
-                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 15),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
                             ),
@@ -124,7 +152,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _buildProfileHeader(cardDark, textLight, textMuted, accentGreen, accentBlue),
+                          _buildProfileHeader(cardDark, textLight, textMuted,
+                              accentGreen, accentBlue),
                           const SizedBox(height: 30),
                           _buildProfileInfo(cardDark, textLight, textMuted),
                           const SizedBox(height: 30),
@@ -136,12 +165,10 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(Color cardDark, Color textLight, Color textMuted, Color accentGreen, Color accentBlue) {
-    // Karena model Pembeli yang diberikan tidak memiliki profilPicture,
-    // kita akan menggunakan ikon placeholder atau gambar default.
-    // Jika Anda ingin menampilkan gambar, Anda perlu menambahkan properti 'profilPicture'
-    // ke model Pembeli Anda dan memastikan API mengembalikan URL gambar.
-    final String defaultProfilePic = 'https://via.placeholder.com/150/2A2A2A/F8F9FA?text=User'; // Gambar placeholder generik
+  Widget _buildProfileHeader(Color cardDark, Color textLight, Color textMuted,
+      Color accentGreen, Color accentBlue) {
+    final String defaultProfilePic =
+        'https://via.placeholder.com/150/2A2A2A/F8F9FA?text=User';
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -162,9 +189,8 @@ class _ProfilePageState extends State<ProfilePage> {
           CircleAvatar(
             radius: 60,
             backgroundColor: textMuted,
-            // Jika ada URL gambar profil di model Pembeli, gunakan NetworkImage.
-            // Untuk saat ini, kita gunakan ikon default.
-            child: Icon(Icons.person, size: 70, color: Colors.white.withOpacity(0.6)),
+            child: Icon(Icons.person,
+                size: 70, color: Colors.white.withOpacity(0.6)),
           ),
           const SizedBox(height: 15),
           Text(
@@ -177,11 +203,11 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 5),
           Text(
-            _pembeli!.emailPembeli ?? 'Tidak Tersedia', // Gunakan null-aware operator
+            _pembeli!.emailPembeli ?? 'Tidak Tersedia',
             style: TextStyle(fontSize: 16, color: textMuted),
           ),
           const SizedBox(height: 15),
-          if (_pembeli!.poinPembeli != null) // Tampilkan poin jika ada
+          if (_pembeli!.poinPembeli != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
               decoration: BoxDecoration(
@@ -198,9 +224,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   const Icon(Icons.star, color: Colors.white, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    'Poin: ${NumberFormat.decimalPattern('id').format(_pembeli!.poinPembeli!)}', // Format angka
+                    'Poin: ${NumberFormat.decimalPattern('id').format(_pembeli!.poinPembeli!)}',
                     style: const TextStyle(
-                        color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -228,17 +256,25 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInfoRow(Icons.phone, 'Nomor Telepon', _pembeli!.noPembeli ?? 'Tidak Tersedia', textLight, textMuted),
+          _buildInfoRow(Icons.phone, 'Nomor Telepon',
+              _pembeli!.noPembeli ?? 'Tidak Tersedia', textLight, textMuted),
           const Divider(color: Colors.white12),
-          _buildInfoRow(Icons.location_on, 'Alamat', _pembeli!.alamatPembeli ?? 'Tidak Tersedia', textLight, textMuted),
+          _buildInfoRow(
+              Icons.location_on,
+              'Alamat',
+              _pembeli!.alamatPembeli ?? 'Tidak Tersedia',
+              textLight,
+              textMuted),
           const Divider(color: Colors.white12),
-          _buildInfoRow(Icons.fingerprint, 'ID Pembeli', _pembeli!.idPembeli, textLight, textMuted),
+          _buildInfoRow(Icons.fingerprint, 'ID Pembeli', _pembeli!.idPembeli,
+              textLight, textMuted),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, Color textLight, Color textMuted) {
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      Color textLight, Color textMuted) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -257,7 +293,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: TextStyle(color: textLight, fontSize: 16, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textLight,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500),
                 ),
               ],
             ),
@@ -274,35 +313,49 @@ class _ProfilePageState extends State<ProfilePage> {
         Expanded(
           child: ElevatedButton.icon(
             onPressed: () {
-              // TODO: Implement edit profile navigation
               print('Edit Profil clicked!');
-              // Contoh: Navigator.push(context, MaterialPageRoute(builder: (context) => EditProfilePage(pembeli: _pembeli!)));
             },
             icon: const Icon(Icons.edit, color: Colors.white),
-            label: const Text('Edit Profil', style: TextStyle(color: Colors.white)),
+            label: const Text('Edit Profil',
+                style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
               backgroundColor: accentGreen,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              textStyle:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),
         const SizedBox(width: 15),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: () {
-              // TODO: Implement logout functionality
+            onPressed: () async {
+              // --- BARIS YANG DITAMBAHKAN/DIUBAH ---
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              await prefs.remove('authToken'); // Hapus token
+              await prefs.remove('currentUserId'); // Hapus ID pengguna
+
+              // Navigasi kembali ke halaman autentikasi
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const AuthPage()),
+                (Route<dynamic> route) => false, // Hapus semua rute sebelumnya
+              );
               print('Logout clicked!');
-              // Contoh: Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AuthPage()));
+              // --- AKHIR BARIS YANG DITAMBAHKAN/DIUBAH ---
             },
             icon: const Icon(Icons.logout, color: Colors.white),
             label: const Text('Logout', style: TextStyle(color: Colors.white)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent, // Warna merah untuk logout
+              backgroundColor: Colors.redAccent,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              textStyle:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
         ),

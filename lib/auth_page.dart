@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:p3l/home_page.dart'; // <--- PASTIKAN PATH INI SESUAI DENGAN LOKASI home_page.dart ANDA
+import 'package:p3l/home_page.dart';
+import 'package:p3l/pageKurir.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -99,23 +101,54 @@ class _AuthPageState extends State<AuthPage> {
         if (responseData['success'] == true) {
           // Login successful
           print('Login successful: ${responseData['message']}');
-          // TODO: Store token and user info (e.g., using shared_preferences or flutter_secure_storage)
-          // final String? token = responseData['data']['token'];
-          // final Map<String, dynamic>? user = responseData['data']['user'];
-          final String? role = responseData['data']['role']; // Asumsi role ada di responseData['data']['role']
+          final String? token = responseData['data']['token'];
+          final Map<String, dynamic>? user = responseData['data']['user'];
+          final String? role = responseData['data']['role'];
+          final String? userId = user?['ID_PEMBELI'] as String?;
 
           _showErrorSnackBar('Login berhasil! Selamat datang.');
 
-          // Navigasi ke dashboard yang sesuai berdasarkan peran
-          if (role == 'pembeli') {
+          if (token != null && userId != null) {
+            final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
+            await prefs.setString('authToken', token); // Simpan token
+            await prefs.setString(
+                'currentUserId', userId); // Simpan ID pengguna
+
+            print('✅ Token disimpan: $token');
+            print('✅ ID Pengguna disimpan: $userId');
+          } else {
+            // Jika token atau ID pengguna tidak ada dalam respons, cetak peringatan
+            print(
+                '⚠️ Peringatan: Token atau ID Pengguna tidak ditemukan dalam respons login.');
+            setState(() {
+              _signInErrorMessage =
+                  'Login berhasil, tapi data sesi tidak lengkap.';
+            });
+            _showErrorSnackBar(_signInErrorMessage!);
+            _isLoading = false; // Pastikan loading dimatikan
+            return; // Hentikan proses navigasi jika data tidak lengkap
+          }
+
+          if (role == 'pembeli' || role == 'penitip') {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const HomePage()), // Navigasi ke HomePage untuk pembeli
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const HomePage()), // Navigasi ke HomePage untuk pembeli
             );
+            } else if (role == 'kurir') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        const PageKurir()), // Navigasi ke HomePage untuk pembeli
+              );
           } else {
             // TODO: Handle navigation for other roles (e.g., organisasi, admin)
             // For now, if role is not 'pembeli', just show success message
-            print('Login successful for role: $role. Implement navigation for this role.');
+            print(
+                'Login successful for role: $role. Implement navigation for this role.');
           }
         } else {
           // Login failed based on backend logic

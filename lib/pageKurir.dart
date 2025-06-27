@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class PageKurir extends StatefulWidget {
+  // ... (sisa kode StatefulWidget sama)
   const PageKurir({Key? key}) : super(key: key);
 
   @override
@@ -14,8 +15,8 @@ class _PageKurirState extends State<PageKurir>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // ... (initState dan dispose sama)
   @override
   void initState() {
     super.initState();
@@ -28,6 +29,11 @@ class _PageKurirState extends State<PageKurir>
     super.dispose();
   }
 
+  // Fungsi untuk logout
+  Future<void> _signOut() async {
+    await _auth.signOut();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +44,16 @@ class _PageKurirState extends State<PageKurir>
         ),
         backgroundColor: Colors.white,
         elevation: 2,
+        // TAMBAHKAN TOMBOL LOGOUT DI SINI
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.blue),
+            tooltip: 'Logout',
+            onPressed: _signOut,
+          ),
+        ],
         bottom: TabBar(
+          // ... (sisa kode AppBar sama)
           controller: _tabController,
           labelColor: Colors.blue,
           unselectedLabelColor: Colors.grey,
@@ -50,6 +65,7 @@ class _PageKurirState extends State<PageKurir>
         ),
       ),
       body: TabBarView(
+        // ... (sisa kode Body sama)
         controller: _tabController,
         children: const [
           ProfileTab(),
@@ -60,6 +76,7 @@ class _PageKurirState extends State<PageKurir>
   }
 }
 
+// ... (Kelas ProfileTab dan DeliveryHistoryTab tetap sama persis seperti kode Anda)
 // Profile Tab
 class ProfileTab extends StatelessWidget {
   const ProfileTab({Key? key}) : super(key: key);

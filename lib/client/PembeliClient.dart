@@ -28,14 +28,15 @@ class PembeliClient {
         throw Exception('Gagal memuat pembeli: ${responseData['message']}');
       }
     } else {
-      throw Exception('Gagal memuat pembeli: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal memuat pembeli: ${response.statusCode} - ${response.body}');
     }
   }
 
   /// Metode untuk mengambil satu pembeli berdasarkan ID.
   Future<Pembeli> fetchPembeliById(String id, {String? authToken}) async {
     final response = await http.get(
-      Uri.parse('$_baseUrl/pembeli/$id'),
+      Uri.parse('$_baseUrl/pembeli/authenticated/$id'),
       headers: {
         'Content-Type': 'application/json; charset=UTF-8',
         if (authToken != null) 'Authorization': 'Bearer $authToken',
@@ -52,12 +53,14 @@ class PembeliClient {
     } else if (response.statusCode == 404) {
       throw Exception('Pembeli tidak ditemukan.');
     } else {
-      throw Exception('Gagal memuat pembeli: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal memuat pembeli: ${response.statusCode} - ${response.body}');
     }
   }
 
   /// Metode untuk membuat pembeli baru (registrasi).
-  Future<Pembeli> createPembeli(Pembeli pembeli, String password, {String? authToken}) async {
+  Future<Pembeli> createPembeli(Pembeli pembeli, String password,
+      {String? authToken}) async {
     final response = await http.post(
       Uri.parse('$_baseUrl/pembeli'),
       headers: {
@@ -68,7 +71,8 @@ class PembeliClient {
       body: jsonEncode({
         'NAMA_PEMBELI': pembeli.namaPembeli,
         'EMAIL_PEMBELI': pembeli.emailPembeli,
-        'PASSWORD_PEMBELI': password, // Kirim password mentah untuk di-hash di backend
+        'PASSWORD_PEMBELI':
+            password, // Kirim password mentah untuk di-hash di backend
         'NO_PEMBELI': pembeli.noPembeli,
         'ALAMAT_PEMBELI': pembeli.alamatPembeli,
         'POIN_PEMBELI': pembeli.poinPembeli,
@@ -83,15 +87,18 @@ class PembeliClient {
         throw Exception('Gagal membuat pembeli: ${responseData['message']}');
       }
     } else {
-      throw Exception('Gagal membuat pembeli: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal membuat pembeli: ${response.statusCode} - ${response.body}');
     }
   }
 
   /// Metode untuk memperbarui pembeli yang sudah ada.
-  Future<Pembeli> updatePembeli(String id, Pembeli pembeli, {String? newPassword, String? authToken}) async {
+  Future<Pembeli> updatePembeli(String id, Pembeli pembeli,
+      {String? newPassword, String? authToken}) async {
     final Map<String, dynamic> requestBody = pembeli.toJson();
     if (newPassword != null && newPassword.isNotEmpty) {
-      requestBody['PASSWORD_PEMBELI'] = newPassword; // Kirim password baru jika ada
+      requestBody['PASSWORD_PEMBELI'] =
+          newPassword; // Kirim password baru jika ada
     }
 
     final response = await http.put(
@@ -108,12 +115,14 @@ class PembeliClient {
       if (responseData['status'] == true && responseData['data'] is Map) {
         return Pembeli.fromJson(responseData['data']);
       } else {
-        throw Exception('Gagal memperbarui pembeli: ${responseData['message']}');
+        throw Exception(
+            'Gagal memperbarui pembeli: ${responseData['message']}');
       }
     } else if (response.statusCode == 404) {
       throw Exception('Pembeli tidak ditemukan untuk diperbarui.');
     } else {
-      throw Exception('Gagal memperbarui pembeli: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal memperbarui pembeli: ${response.statusCode} - ${response.body}');
     }
   }
 
@@ -136,11 +145,13 @@ class PembeliClient {
       }
     } else if (response.statusCode == 404) {
       throw Exception('Pembeli tidak ditemukan untuk dihapus.');
-    } else if (response.statusCode == 409) { // Conflict
+    } else if (response.statusCode == 409) {
+      // Conflict
       final Map<String, dynamic> responseData = json.decode(response.body);
       throw Exception('Gagal menghapus pembeli: ${responseData['message']}');
     } else {
-      throw Exception('Gagal menghapus pembeli: ${response.statusCode} - ${response.body}');
+      throw Exception(
+          'Gagal menghapus pembeli: ${response.statusCode} - ${response.body}');
     }
   }
 }
